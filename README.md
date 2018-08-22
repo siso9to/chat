@@ -1,6 +1,5 @@
-# Go言語によるWebアプリケーション開発
-## 1章 WebSocketを利用したチャットアプリケーション
-### 学んだ事
+# Go Programming Blueprints
+## Chapter1 Chat Application
 - net/http
 - html/template
 - goroutine, channel

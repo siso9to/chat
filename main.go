@@ -9,6 +9,9 @@ import (
 	"text/template"
 	"os"
 	"github.com/siso9to/chat/trace"
+	"github.com/stretchr/gomniauth"
+	"github.com/stretchr/gomniauth/providers/google"
+	"github.com/stretchr/objx"
 )
 
 type templateHandler struct {
@@ -22,12 +25,23 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		t.templ =
 			template.Must(template.ParseFiles(filepath.Join("templates", t.filename)))
 	})
-	t.templ.Execute(w, r)
+	data := map[string]interface{} {
+		"Host": r.Host,
+	}
+	if authCookie, err := r.Cookie("auth"); err == nil {
+		data["UserData"] = objx.MustFromBase64(authCookie.Value)
+	}
+	t.templ.Execute(w, data)
 }
 
 func main() {
 	var addr = flag.String("addr", ":8080", "アプリケーションのアドレス")
 	flag.Parse()
+
+	gomniauth.SetSecurityKey(os.Getenv("G_AUTH_SECURITY_KEY"))
+	gomniauth.WithProviders(google.New(os.Getenv("G_AUTH_CLIENT_ID"),
+		os.Getenv("G_AUTH_CLIENT_SECRET"),
+		"http://localhost:8080/auth/callback/google"))
 	r := newRoom()
 	r.tracer = trace.New(os.Stdout)
 
